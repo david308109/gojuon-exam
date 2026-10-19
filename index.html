@@ -268,7 +268,7 @@ document.querySelectorAll('.tag').forEach(t=>{
 
 // ── STATE ────────────────────────────────────
 let questions=[], done=0, scoreC=0, wrongMap=new Map();
-let inputs=[], hints=[], rows=[];
+let inputs=[], hints=[], rows=[], wasWrong=[];
 let curIdx=0; // currently active input index
 
 const settEl = document.getElementById('settings');
@@ -286,7 +286,7 @@ function startQuiz(){
   const pool = buildPool();
   questions = buildQuestions(pool);
   done=0; scoreC=0; wrongMap=new Map(); curIdx=0;
-  inputs=[]; hints=[]; rows=[];
+  inputs=[]; hints=[]; rows=[]; wasWrong=[];
   qlist.innerHTML='';
 
   questions.forEach((q,i)=>{
@@ -314,7 +314,7 @@ function startQuiz(){
     row.appendChild(inp); row.appendChild(hint);
     qlist.appendChild(row);
 
-    rows.push(row); inputs.push(inp); hints.push(hint);
+    rows.push(row); inputs.push(inp); hints.push(hint); wasWrong.push(false);
 
     inp.addEventListener('input', ()=>onType(i));
     inp.addEventListener('focus', ()=>setActive(i));
@@ -352,11 +352,10 @@ function onType(i){
     return;
   }
 
-  // Cannot be correct → WRONG (show answer, stay on field)
+  // Cannot be correct → WRONG (red only, user keeps trying)
   inputs[i].className='qinput wrong';
-  hints[i].textContent=q.r[0]; hints[i].className='qhint wrong';
-  if(!wrongMap.has(q.k)) wrongMap.set(q.k,q.r[0]);
-  updateTop();
+  hints[i].textContent=''; hints[i].className='qhint';
+  wasWrong[i]=true;
 }
 
 function markCorrect(i){
@@ -367,6 +366,10 @@ function markCorrect(i){
   inp.className='qinput correct'; inp.readOnly=true;
   hint.textContent='✓'; hint.className='qhint correct';
   row.classList.remove('active-row'); row.classList.add('done-correct');
+
+  // if they ever got it wrong before, record it
+  if(wasWrong[i] && !wrongMap.has(questions[i].k))
+    wrongMap.set(questions[i].k, questions[i].r[0]);
 
   scoreC++; done++;
   updateTop();
@@ -400,24 +403,7 @@ function setActive(i){
   rows[i].classList.add('active-row');
 }
 
-// Enter on a wrong field → skip (count as wrong, move on)
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Enter') return;
-  if(quizEl.style.display==='none') return;
-  const i=curIdx;
-  if(inputs[i].readOnly) return;
-  const val=inputs[i].value.toLowerCase().trim();
-  if(questions[i].r.includes(val)) return; // will be handled by onType
-  e.preventDefault();
-  // mark as wrong-skipped
-  inputs[i].className='qinput wrong'; inputs[i].readOnly=true;
-  hints[i].textContent=questions[i].r[0]; hints[i].className='qhint wrong';
-  rows[i].classList.remove('active-row'); rows[i].classList.add('done-wrong');
-  if(!wrongMap.has(questions[i].k)) wrongMap.set(questions[i].k,questions[i].r[0]);
-  done++; updateTop();
-  if(done===TOTAL){ setTimeout(showResult,300); return; }
-  advanceTo(findNext(i));
-});
+
 
 function updateTop(){
   const pct=done/TOTAL*100;

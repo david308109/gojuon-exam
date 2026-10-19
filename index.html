@@ -113,14 +113,6 @@
     .rstat span:last-child  { font-size: .78rem; color: var(--muted); }
     .rstat.c span:first-child { color: var(--correct); }
     .rstat.w span:first-child { color: var(--wrong); }
-    #wrong-list-wrap { width: 100%; }
-    #wrong-list-wrap h3 { font-size: .85rem; color: var(--muted); margin-bottom: 10px; }
-    #wrong-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .wi {
-      padding: 5px 12px; border-radius: 8px;
-      background: var(--wrong-bg); border: 1px solid var(--wrong-border);
-      font-size: .88rem; color: var(--wrong);
-    }
     #retry-btn {
       padding: 10px 28px; border-radius: 20px; border: none;
       background: var(--accent); color: #fff;
@@ -163,10 +155,6 @@
     <div class="rstat c"><span id="r-c">0</span><span>正確</span></div>
     <div class="rstat w"><span id="r-w">0</span><span>錯誤</span></div>
     <div class="rstat">  <span id="r-a">0%</span><span>正確率</span></div>
-  </div>
-  <div id="wrong-list-wrap">
-    <h3>答錯的字</h3>
-    <div id="wrong-list"></div>
   </div>
   <button id="retry-btn">再練一次</button>
 </section>
@@ -267,9 +255,9 @@ document.querySelectorAll('.tag').forEach(t=>{
 });
 
 // ── STATE ────────────────────────────────────
-let questions=[], done=0, scoreC=0, wrongMap=new Map();
+let questions=[], done=0, scoreC=0;
 let inputs=[], hints=[], rows=[], wasWrong=[];
-let curIdx=0; // currently active input index
+let curIdx=0;
 
 const settEl = document.getElementById('settings');
 const quizEl = document.getElementById('quiz');
@@ -285,7 +273,7 @@ document.getElementById('start-btn').addEventListener('click', startQuiz);
 function startQuiz(){
   const pool = buildPool();
   questions = buildQuestions(pool);
-  done=0; scoreC=0; wrongMap=new Map(); curIdx=0;
+  done=0; scoreC=0; curIdx=0;
   inputs=[]; hints=[]; rows=[]; wasWrong=[];
   qlist.innerHTML='';
 
@@ -367,10 +355,6 @@ function markCorrect(i){
   hint.textContent='✓'; hint.className='qhint correct';
   row.classList.remove('active-row'); row.classList.add('done-correct');
 
-  // if they ever got it wrong before, record it
-  if(wasWrong[i] && !wrongMap.has(questions[i].k))
-    wrongMap.set(questions[i].k, questions[i].r[0]);
-
   scoreC++; done++;
   updateTop();
 
@@ -410,26 +394,16 @@ function updateTop(){
   pbEl.style.width=pct+'%';
   ptEl.textContent=done+' / '+TOTAL;
   scCEl.textContent=scoreC;
-  scWEl.textContent=wrongMap.size;
+  scWEl.textContent=done-scoreC;
 }
 
 // ── RESULT ───────────────────────────────────
 function showResult(){
   quizEl.style.display='none'; resEl.style.display='flex';
+  const wrong=TOTAL-scoreC;
   document.getElementById('r-c').textContent=scoreC;
-  document.getElementById('r-w').textContent=wrongMap.size;
+  document.getElementById('r-w').textContent=wrong;
   document.getElementById('r-a').textContent=Math.round(scoreC/TOTAL*100)+'%';
-  const wl=document.getElementById('wrong-list');
-  wl.innerHTML='';
-  if(!wrongMap.size){
-    wl.innerHTML='<span style="color:var(--correct)">全部答對！🎉</span>';
-  } else {
-    wrongMap.forEach((r,k)=>{
-      const el=document.createElement('span');
-      el.className='wi'; el.textContent=k+' \u2192 '+r;
-      wl.appendChild(el);
-    });
-  }
 }
 
 document.getElementById('retry-btn').addEventListener('click',()=>{

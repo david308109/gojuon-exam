@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
@@ -6,248 +6,133 @@
   <title>五十音練習</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f7f7f5;
-      --surface: #ffffff;
-      --border: #e0e0de;
+      --bg: #f8f8f6;
+      --surface: #fff;
+      --border: #e2e2e0;
       --text: #1a1a18;
-      --muted: #888885;
+      --muted: #909090;
       --accent: #3d6fff;
-      --correct: #22c55e;
-      --wrong: #ef4444;
-      --tag-bg: #f0f0ee;
-      --tag-active: #3d6fff;
-      --tag-active-text: #fff;
+      --correct: #16a34a;
+      --correct-bg: #f0fdf4;
+      --correct-border: #86efac;
+      --wrong: #dc2626;
+      --wrong-bg: #fff5f5;
+      --wrong-border: #fca5a5;
+      --active-bg: #eff4ff;
     }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: var(--bg); color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      min-height: 100vh; display: flex;
+      flex-direction: column; align-items: center;
     }
 
-    header {
-      width: 100%;
-      max-width: 480px;
-      padding: 28px 20px 0;
-    }
-    header h1 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: .05em;
-    }
-
+    /* ── Settings ── */
     #settings {
-      width: 100%;
-      max-width: 480px;
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      width: 100%; max-width: 540px;
+      padding: 32px 20px 20px;
+      display: flex; flex-direction: column; gap: 14px;
     }
-
+    #settings h1 { font-size: 1.15rem; font-weight: 600; color: var(--muted); }
     .row { display: flex; gap: 8px; flex-wrap: wrap; }
-
     .tag {
-      cursor: pointer;
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border);
-      background: var(--tag-bg);
-      font-size: .85rem;
-      font-weight: 500;
-      color: var(--text);
-      transition: all .15s;
-      user-select: none;
+      cursor: pointer; padding: 6px 16px; border-radius: 20px;
+      border: 1.5px solid var(--border); background: #efefed;
+      font-size: .85rem; font-weight: 500; user-select: none; transition: all .15s;
     }
-    .tag.active {
-      background: var(--tag-active);
-      border-color: var(--tag-active);
-      color: var(--tag-active-text);
-    }
+    .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
     .tag:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-
     #start-btn {
-      align-self: flex-end;
-      padding: 8px 22px;
-      border-radius: 20px;
-      border: none;
-      background: var(--accent);
-      color: #fff;
-      font-size: .9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity .15s;
+      align-self: flex-end; padding: 9px 24px; border-radius: 20px;
+      border: none; background: var(--accent); color: #fff;
+      font-size: .9rem; font-weight: 600; cursor: pointer;
     }
     #start-btn:hover { opacity: .85; }
 
-    #quiz {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 480px;
-      padding: 12px 20px 40px;
-      gap: 16px;
+    /* ── Quiz ── */
+    #quiz { display: none; width: 100%; flex-direction: column; align-items: center; }
+
+    #topbar {
+      position: sticky; top: 0; z-index: 10;
+      width: 100%; background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+    }
+    #topbar-inner {
+      width: 100%; max-width: 540px; margin: 0 auto;
+      display: flex; align-items: center; gap: 12px;
+    }
+    #pb-bg { flex: 1; height: 5px; border-radius: 4px; background: var(--border); overflow: hidden; }
+    #pb { height: 100%; border-radius: 4px; background: var(--accent); transition: width .2s; }
+    #prog-txt { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+    .sc-c { font-size: .82rem; font-weight: 700; color: var(--correct); }
+    .sc-w { font-size: .82rem; font-weight: 700; color: var(--wrong); }
+
+    #qlist {
+      width: 100%; max-width: 540px;
+      padding: 10px 20px 60px;
+      display: flex; flex-direction: column; gap: 4px;
     }
 
-    #progress-wrap {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .qrow {
+      display: flex; align-items: center; gap: 12px;
+      padding: 6px 10px; border-radius: 10px;
+      border: 1.5px solid transparent; transition: background .15s;
     }
-    #progress-bar-bg {
-      flex: 1;
-      height: 4px;
-      border-radius: 4px;
-      background: var(--border);
-      overflow: hidden;
-    }
-    #progress-bar {
-      height: 100%;
-      border-radius: 4px;
-      background: var(--accent);
-      transition: width .3s;
-    }
-    #progress-text {
-      font-size: .78rem;
-      color: var(--muted);
-      white-space: nowrap;
-      min-width: 44px;
-      text-align: right;
-    }
+    .qrow.active-row { background: var(--active-bg); border-color: #c7d9ff; }
+    .qrow.done-correct { opacity: .4; }
+    .qrow.done-wrong { opacity: .8; }
 
-    #score-wrap {
-      width: 100%;
-      display: flex;
-      justify-content: flex-end;
-      gap: 16px;
-      font-size: .82rem;
-      color: var(--muted);
+    .qnum { font-size: .7rem; color: var(--muted); min-width: 24px; text-align: right; flex-shrink: 0; }
+    .qkana { font-size: 2rem; line-height: 1; min-width: 54px; text-align: center; flex-shrink: 0; user-select: none; }
+    .qinput {
+      width: 96px; padding: 5px 8px;
+      font-size: .92rem; border: 2px solid var(--border);
+      border-radius: 8px; background: var(--bg); color: var(--text);
+      text-align: center; outline: none; letter-spacing: .06em;
+      transition: border-color .1s, background .1s;
     }
-    #score-correct { color: var(--correct); font-weight: 600; }
-    #score-wrong   { color: var(--wrong);   font-weight: 600; }
+    .qinput:focus { border-color: var(--accent); background: var(--surface); }
+    .qinput.correct { border-color: var(--correct-border); background: var(--correct-bg); color: var(--correct); font-weight: 600; }
+    .qinput.wrong   { border-color: var(--wrong-border);   background: var(--wrong-bg);   color: var(--wrong); }
+    .qhint { font-size: .75rem; min-width: 48px; }
+    .qhint.correct { color: var(--correct); }
+    .qhint.wrong   { color: var(--wrong); }
 
-    #card {
-      width: 100%;
-      background: var(--surface);
-      border-radius: 16px;
-      border: 1.5px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 24px 28px;
-      gap: 28px;
-    }
-
-    #kana {
-      font-size: 5rem;
-      line-height: 1;
-      font-weight: 300;
-      letter-spacing: .02em;
-      user-select: none;
-    }
-
-    #input-wrap { width: 100%; max-width: 240px; position: relative; }
-
-    #answer {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 1.1rem;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg);
-      color: var(--text);
-      text-align: center;
-      outline: none;
-      transition: border-color .2s, background .2s;
-      letter-spacing: .08em;
-    }
-    #answer:focus  { border-color: var(--accent); }
-    #answer.correct { border-color: var(--correct); background: #f0fdf4; }
-    #answer.wrong   { border-color: var(--wrong);   background: #fff5f5; }
-
-    #hint {
-      margin-top: 8px;
-      font-size: .82rem;
-      text-align: center;
-      min-height: 18px;
-      color: var(--muted);
-    }
-    #hint.correct { color: var(--correct); }
-    #hint.wrong   { color: var(--wrong); }
-
-    #next-btn {
-      display: none;
-      padding: 8px 24px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-size: .85rem;
-      cursor: pointer;
-      transition: all .15s;
-    }
-    #next-btn:hover { border-color: var(--accent); color: var(--accent); }
-    #next-btn.visible { display: inline-block; }
-
+    /* ── Result ── */
     #result {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 480px;
-      padding: 40px 20px;
-      gap: 24px;
+      display: none; flex-direction: column; align-items: center;
+      width: 100%; max-width: 540px;
+      padding: 40px 20px; gap: 24px;
     }
-    #result h2 { font-size: 1.4rem; font-weight: 700; }
-    #result-stats { display: flex; gap: 32px; font-size: 1rem; }
-    .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .stat span:first-child { font-size: 2rem; font-weight: 700; }
-    .stat span:last-child  { font-size: .78rem; color: var(--muted); }
-    .stat.c span:first-child { color: var(--correct); }
-    .stat.w span:first-child { color: var(--wrong); }
-
+    #result h2 { font-size: 1.5rem; font-weight: 700; }
+    #res-stats { display: flex; gap: 32px; }
+    .rstat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .rstat span:first-child { font-size: 2.2rem; font-weight: 700; }
+    .rstat span:last-child  { font-size: .78rem; color: var(--muted); }
+    .rstat.c span:first-child { color: var(--correct); }
+    .rstat.w span:first-child { color: var(--wrong); }
     #wrong-list-wrap { width: 100%; }
     #wrong-list-wrap h3 { font-size: .85rem; color: var(--muted); margin-bottom: 10px; }
     #wrong-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .wrong-item {
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: #fff5f5;
-      border: 1px solid #fecaca;
-      font-size: .9rem;
-      color: var(--wrong);
+    .wi {
+      padding: 5px 12px; border-radius: 8px;
+      background: var(--wrong-bg); border: 1px solid var(--wrong-border);
+      font-size: .88rem; color: var(--wrong);
     }
-
     #retry-btn {
-      padding: 10px 28px;
-      border-radius: 20px;
-      border: none;
-      background: var(--accent);
-      color: #fff;
-      font-size: .95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity .15s;
+      padding: 10px 28px; border-radius: 20px; border: none;
+      background: var(--accent); color: #fff;
+      font-size: .95rem; font-weight: 600; cursor: pointer;
     }
     #retry-btn:hover { opacity: .85; }
-
-    @media (max-width: 400px) { #kana { font-size: 4rem; } }
   </style>
 </head>
 <body>
 
-<header><h1>五十音練習</h1></header>
-
 <section id="settings">
+  <h1>五十音練習</h1>
   <div class="row">
     <span class="tag active" data-group="script" data-value="hira">平假名</span>
     <span class="tag"        data-group="script" data-value="kata">片假名</span>
@@ -261,31 +146,23 @@
 </section>
 
 <section id="quiz">
-  <div id="progress-wrap">
-    <div id="progress-bar-bg"><div id="progress-bar" style="width:0%"></div></div>
-    <span id="progress-text">0 / 100</span>
-  </div>
-  <div id="score-wrap">
-    <span>✓ <span id="score-correct">0</span></span>
-    <span>✗ <span id="score-wrong">0</span></span>
-  </div>
-  <div id="card">
-    <div id="kana">あ</div>
-    <div id="input-wrap">
-      <input id="answer" type="text" autocomplete="off" autocorrect="off"
-             autocapitalize="off" spellcheck="false" placeholder="羅馬拼音" />
-      <div id="hint"></div>
+  <div id="topbar">
+    <div id="topbar-inner">
+      <div id="pb-bg"><div id="pb" style="width:0%"></div></div>
+      <span id="prog-txt">0 / 100</span>
+      <span class="sc-c">✓ <span id="sc-c">0</span></span>
+      <span class="sc-w">✗ <span id="sc-w">0</span></span>
     </div>
   </div>
-  <button id="next-btn">下一題 →</button>
+  <div id="qlist"></div>
 </section>
 
 <section id="result">
   <h2>練習完成！</h2>
-  <div id="result-stats">
-    <div class="stat c"><span id="r-correct">0</span><span>正確</span></div>
-    <div class="stat w"><span id="r-wrong">0</span><span>錯誤</span></div>
-    <div class="stat"><span id="r-acc">0%</span><span>正確率</span></div>
+  <div id="res-stats">
+    <div class="rstat c"><span id="r-c">0</span><span>正確</span></div>
+    <div class="rstat w"><span id="r-w">0</span><span>錯誤</span></div>
+    <div class="rstat">  <span id="r-a">0%</span><span>正確率</span></div>
   </div>
   <div id="wrong-list-wrap">
     <h3>答錯的字</h3>
@@ -295,7 +172,7 @@
 </section>
 
 <script>
-// ── DATA ──────────────────────────────────────
+// ── DATA ─────────────────────────────────────
 const HIRA_BASIC = [
   {k:'あ',r:['a']},  {k:'い',r:['i']},  {k:'う',r:['u']},  {k:'え',r:['e']},  {k:'お',r:['o']},
   {k:'か',r:['ka']}, {k:'き',r:['ki']}, {k:'く',r:['ku']}, {k:'け',r:['ke']}, {k:'こ',r:['ko']},
@@ -308,18 +185,15 @@ const HIRA_BASIC = [
   {k:'ら',r:['ra']}, {k:'り',r:['ri']}, {k:'る',r:['ru']}, {k:'れ',r:['re']}, {k:'ろ',r:['ro']},
   {k:'わ',r:['wa']}, {k:'を',r:['wo','o']}, {k:'ん',r:['n','nn']},
 ];
-
 const HIRA_DAKU = [
   {k:'が',r:['ga']}, {k:'ぎ',r:['gi']}, {k:'ぐ',r:['gu']}, {k:'げ',r:['ge']}, {k:'ご',r:['go']},
   {k:'ざ',r:['za']}, {k:'じ',r:['ji','zi']}, {k:'ず',r:['zu']}, {k:'ぜ',r:['ze']}, {k:'ぞ',r:['zo']},
   {k:'だ',r:['da']}, {k:'ぢ',r:['ji','di','zi']}, {k:'づ',r:['zu','du']}, {k:'で',r:['de']}, {k:'ど',r:['do']},
   {k:'ば',r:['ba']}, {k:'び',r:['bi']}, {k:'ぶ',r:['bu']}, {k:'べ',r:['be']}, {k:'ぼ',r:['bo']},
 ];
-
 const HIRA_HANDAKU = [
   {k:'ぱ',r:['pa']}, {k:'ぴ',r:['pi']}, {k:'ぷ',r:['pu']}, {k:'ぺ',r:['pe']}, {k:'ぽ',r:['po']},
 ];
-
 const HIRA_YOU_BASIC = [
   {k:'きゃ',r:['kya']}, {k:'きゅ',r:['kyu']}, {k:'きょ',r:['kyo']},
   {k:'しゃ',r:['sha','sya']}, {k:'しゅ',r:['shu','syu']}, {k:'しょ',r:['sho','syo']},
@@ -338,180 +212,242 @@ const HIRA_YOU_HANDAKU = [
   {k:'ぴゃ',r:['pya']}, {k:'ぴゅ',r:['pyu']}, {k:'ぴょ',r:['pyo']},
 ];
 
-function toKata(str) {
-  return str.replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+function toKata(s){ return s.replace(/[\u3041-\u3096]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60)); }
+const KATA_BASIC       = HIRA_BASIC.map(x=>({k:toKata(x.k),r:x.r}));
+const KATA_DAKU        = HIRA_DAKU.map(x=>({k:toKata(x.k),r:x.r}));
+const KATA_HANDAKU     = HIRA_HANDAKU.map(x=>({k:toKata(x.k),r:x.r}));
+const KATA_YOU_BASIC   = HIRA_YOU_BASIC.map(x=>({k:toKata(x.k),r:x.r}));
+const KATA_YOU_DAKU    = HIRA_YOU_DAKU.map(x=>({k:toKata(x.k),r:x.r}));
+const KATA_YOU_HANDAKU = HIRA_YOU_HANDAKU.map(x=>({k:toKata(x.k),r:x.r}));
+
+// ── HELPERS ──────────────────────────────────
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+const TOTAL = 100;
+const cfg = {script:'hira',daku:false,handaku:false,you:false};
+
+function buildPool(){
+  const H = cfg.script==='hira';
+  let p = [...(H?HIRA_BASIC:KATA_BASIC)];
+  if(cfg.daku)    p=p.concat(H?HIRA_DAKU:KATA_DAKU);
+  if(cfg.handaku) p=p.concat(H?HIRA_HANDAKU:KATA_HANDAKU);
+  if(cfg.you){
+    p=p.concat(H?HIRA_YOU_BASIC:KATA_YOU_BASIC);
+    if(cfg.daku)    p=p.concat(H?HIRA_YOU_DAKU:KATA_YOU_DAKU);
+    if(cfg.handaku) p=p.concat(H?HIRA_YOU_HANDAKU:KATA_YOU_HANDAKU);
+  }
+  return p;
 }
 
-const KATA_BASIC      = HIRA_BASIC.map(x=>({k:toKata(x.k),r:x.r}));
-const KATA_DAKU       = HIRA_DAKU.map(x=>({k:toKata(x.k),r:x.r}));
-const KATA_HANDAKU    = HIRA_HANDAKU.map(x=>({k:toKata(x.k),r:x.r}));
-const KATA_YOU_BASIC  = HIRA_YOU_BASIC.map(x=>({k:toKata(x.k),r:x.r}));
-const KATA_YOU_DAKU   = HIRA_YOU_DAKU.map(x=>({k:toKata(x.k),r:x.r}));
-const KATA_YOU_HANDAKU= HIRA_YOU_HANDAKU.map(x=>({k:toKata(x.k),r:x.r}));
+function buildQuestions(pool){
+  if(pool.length>=TOTAL) return shuffle([...pool]).slice(0,TOTAL);
+  const extra = Math.floor((TOTAL-pool.length)/pool.length);
+  const rem   = (TOTAL-pool.length)%pool.length;
+  let q = shuffle([...pool]);
+  for(let i=0;i<extra;i++) q=q.concat(shuffle([...pool]));
+  q=q.concat(shuffle([...pool]).slice(0,rem));
+  return shuffle(q);
+}
 
-// ── STATE ─────────────────────────────────────
-const TOTAL = 100;
-let questions=[], current=0, scoreC=0, scoreW=0;
-let answered=false, waitingNext=false;
-let wrongSet = new Map();
-
-// ── SETTINGS UI ───────────────────────────────
-const settings = { script:'hira', daku:false, handaku:false, you:false };
-
-document.querySelectorAll('.tag').forEach(t => {
-  t.addEventListener('click', () => {
-    if (t.dataset.group === 'script') {
+// ── SETTINGS ─────────────────────────────────
+document.querySelectorAll('.tag').forEach(t=>{
+  t.addEventListener('click',()=>{
+    if(t.dataset.group==='script'){
       document.querySelectorAll('[data-group="script"]').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      settings.script = t.dataset.value;
+      t.classList.add('active'); cfg.script=t.dataset.value;
     } else {
-      t.classList.toggle('active');
-      settings[t.dataset.value] = t.classList.contains('active');
+      t.classList.toggle('active'); cfg[t.dataset.value]=t.classList.contains('active');
     }
   });
 });
 
-// ── HELPERS ───────────────────────────────────
-function shuffle(arr) {
-  for (let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-  return arr;
-}
+// ── STATE ────────────────────────────────────
+let questions=[], done=0, scoreC=0, wrongMap=new Map();
+let inputs=[], hints=[], rows=[];
+let curIdx=0; // currently active input index
 
-function buildPool() {
-  const isH = settings.script === 'hira';
-  let pool = [...(isH ? HIRA_BASIC : KATA_BASIC)];
-  if (settings.daku)    pool = pool.concat(isH ? HIRA_DAKU    : KATA_DAKU);
-  if (settings.handaku) pool = pool.concat(isH ? HIRA_HANDAKU : KATA_HANDAKU);
-  if (settings.you) {
-    pool = pool.concat(isH ? HIRA_YOU_BASIC : KATA_YOU_BASIC);
-    if (settings.daku)    pool = pool.concat(isH ? HIRA_YOU_DAKU    : KATA_YOU_DAKU);
-    if (settings.handaku) pool = pool.concat(isH ? HIRA_YOU_HANDAKU : KATA_YOU_HANDAKU);
-  }
-  return pool;
-}
+const settEl = document.getElementById('settings');
+const quizEl = document.getElementById('quiz');
+const resEl  = document.getElementById('result');
+const pbEl   = document.getElementById('pb');
+const ptEl   = document.getElementById('prog-txt');
+const scCEl  = document.getElementById('sc-c');
+const scWEl  = document.getElementById('sc-w');
+const qlist  = document.getElementById('qlist');
 
-function buildQuestions(pool) {
-  if (pool.length >= TOTAL) {
-    return shuffle([...pool]).slice(0, TOTAL);
-  }
-  const base  = shuffle([...pool]);
-  const extra = Math.floor((TOTAL - pool.length) / pool.length);
-  const rem   = (TOTAL - pool.length) % pool.length;
-  let q = [...base];
-  for (let i=0; i<extra; i++) q = q.concat(shuffle([...pool]));
-  q = q.concat(shuffle([...pool]).slice(0, rem));
-  return shuffle(q);
-}
-
-// ── DOM REFS ──────────────────────────────────
-const settingsEl = document.getElementById('settings');
-const quizEl     = document.getElementById('quiz');
-const resultEl   = document.getElementById('result');
-const kanaEl     = document.getElementById('kana');
-const answerEl   = document.getElementById('answer');
-const hintEl     = document.getElementById('hint');
-const nextBtn    = document.getElementById('next-btn');
-const pbEl       = document.getElementById('progress-bar');
-const ptEl       = document.getElementById('progress-text');
-const scC        = document.getElementById('score-correct');
-const scW        = document.getElementById('score-wrong');
-
-// ── QUIZ ──────────────────────────────────────
 document.getElementById('start-btn').addEventListener('click', startQuiz);
 
-function startQuiz() {
+function startQuiz(){
   const pool = buildPool();
   questions = buildQuestions(pool);
-  current=0; scoreC=0; scoreW=0; wrongSet=new Map();
-  settingsEl.style.display = 'none';
-  resultEl.style.display   = 'none';
-  quizEl.style.display     = 'flex';
-  updateScore();
-  showQuestion();
+  done=0; scoreC=0; wrongMap=new Map(); curIdx=0;
+  inputs=[]; hints=[]; rows=[];
+  qlist.innerHTML='';
+
+  questions.forEach((q,i)=>{
+    const row = document.createElement('div');
+    row.className = 'qrow' + (i===0?' active-row':'');
+
+    const num = document.createElement('span');
+    num.className='qnum'; num.textContent=i+1;
+
+    const kana = document.createElement('span');
+    kana.className='qkana'; kana.textContent=q.k;
+
+    const inp = document.createElement('input');
+    inp.type='text'; inp.className='qinput';
+    inp.autocomplete='off'; inp.autocorrect='off';
+    inp.autocapitalize='off'; inp.spellcheck=false;
+    inp.placeholder='?';
+    inp.tabIndex = i+1;
+    inp.readOnly = (i!==0);   // only first row editable at start
+
+    const hint = document.createElement('span');
+    hint.className='qhint';
+
+    row.appendChild(num); row.appendChild(kana);
+    row.appendChild(inp); row.appendChild(hint);
+    qlist.appendChild(row);
+
+    rows.push(row); inputs.push(inp); hints.push(hint);
+
+    inp.addEventListener('input', ()=>onType(i));
+    inp.addEventListener('focus', ()=>setActive(i));
+  });
+
+  updateTop();
+  settEl.style.display='none';
+  quizEl.style.display='flex';
+  inputs[0].focus();
+  inputs[0].scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-function showQuestion() {
-  answered=false; waitingNext=false;
-  const q = questions[current];
-  kanaEl.textContent = q.k;
-  answerEl.value=''; answerEl.className='';
-  hintEl.textContent=''; hintEl.className='';
-  nextBtn.classList.remove('visible');
-  updateProgress();
-  answerEl.focus();
-}
+// ── REAL-TIME CHECK ──────────────────────────
+function onType(i){
+  if(inputs[i].readOnly && i!==curIdx) return;
+  const val = inputs[i].value.toLowerCase().trim();
+  const q   = questions[i];
 
-function updateProgress() {
-  pbEl.style.width = (current/TOTAL*100)+'%';
-  ptEl.textContent = current+' / '+TOTAL;
-}
-function updateScore() {
-  scC.textContent=scoreC; scW.textContent=scoreW;
-}
-
-answerEl.addEventListener('input', () => {
-  if (answered) return;
-  answerEl.className=''; hintEl.textContent=''; hintEl.className='';
-});
-
-answerEl.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  e.preventDefault();
-  if (waitingNext) { advance(); return; }
-  if (!answered)   { checkAnswer(); }
-});
-
-nextBtn.addEventListener('click', advance);
-
-function checkAnswer() {
-  const raw = answerEl.value.trim().toLowerCase();
-  if (!raw) return;
-  const q = questions[current];
-  const ok = q.r.includes(raw);
-  answered = true;
-
-  if (ok) {
-    answerEl.className='correct'; hintEl.textContent='✓ 正確！'; hintEl.className='correct';
-    scoreC++; updateScore();
-    setTimeout(()=>{ if(answered) advance(); }, 600);
-  } else {
-    answerEl.className='wrong';
-    hintEl.textContent='✗ 正確答案：'+q.r[0]; hintEl.className='wrong';
-    scoreW++; updateScore();
-    if (!wrongSet.has(q.k)) wrongSet.set(q.k, q.r[0]);
-    waitingNext=true; nextBtn.classList.add('visible');
+  if(!val){
+    inputs[i].className='qinput';
+    hints[i].textContent=''; hints[i].className='qhint';
+    return;
   }
+
+  // Exact match → CORRECT, advance immediately
+  if(q.r.includes(val)){
+    markCorrect(i);
+    return;
+  }
+
+  // Still a valid prefix of some answer → neutral
+  if(q.r.some(a=>a.startsWith(val))){
+    inputs[i].className='qinput';
+    hints[i].textContent=''; hints[i].className='qhint';
+    return;
+  }
+
+  // Cannot be correct → WRONG (show answer, stay on field)
+  inputs[i].className='qinput wrong';
+  hints[i].textContent=q.r[0]; hints[i].className='qhint wrong';
+  if(!wrongMap.has(q.k)) wrongMap.set(q.k,q.r[0]);
+  updateTop();
 }
 
-function advance() {
-  current++;
-  if (current >= TOTAL) showResult(); else showQuestion();
+function markCorrect(i){
+  const inp  = inputs[i];
+  const hint = hints[i];
+  const row  = rows[i];
+
+  inp.className='qinput correct'; inp.readOnly=true;
+  hint.textContent='✓'; hint.className='qhint correct';
+  row.classList.remove('active-row'); row.classList.add('done-correct');
+
+  scoreC++; done++;
+  updateTop();
+
+  if(done===TOTAL){ setTimeout(showResult,300); return; }
+  advanceTo(findNext(i));
 }
 
-// ── RESULT ────────────────────────────────────
-function showResult() {
-  quizEl.style.display='none'; resultEl.style.display='flex';
-  document.getElementById('r-correct').textContent=scoreC;
-  document.getElementById('r-wrong').textContent=scoreW;
-  document.getElementById('r-acc').textContent=Math.round(scoreC/TOTAL*100)+'%';
+function findNext(from){
+  for(let j=from+1;j<TOTAL;j++) if(!inputs[j].readOnly) return j;
+  for(let j=0;j<from;j++)        if(!inputs[j].readOnly) return j;
+  return -1;
+}
+
+function advanceTo(i){
+  if(i===-1) return;
+  curIdx=i;
+  rows[i].classList.add('active-row');
+  inputs[i].readOnly=false;
+  inputs[i].value='';
+  inputs[i].className='qinput';
+  hints[i].textContent=''; hints[i].className='qhint';
+  inputs[i].focus();
+  rows[i].scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function setActive(i){
+  if(inputs[i].readOnly) return;
+  rows[curIdx].classList.remove('active-row');
+  curIdx=i;
+  rows[i].classList.add('active-row');
+}
+
+// Enter on a wrong field → skip (count as wrong, move on)
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  if(quizEl.style.display==='none') return;
+  const i=curIdx;
+  if(inputs[i].readOnly) return;
+  const val=inputs[i].value.toLowerCase().trim();
+  if(questions[i].r.includes(val)) return; // will be handled by onType
+  e.preventDefault();
+  // mark as wrong-skipped
+  inputs[i].className='qinput wrong'; inputs[i].readOnly=true;
+  hints[i].textContent=questions[i].r[0]; hints[i].className='qhint wrong';
+  rows[i].classList.remove('active-row'); rows[i].classList.add('done-wrong');
+  if(!wrongMap.has(questions[i].k)) wrongMap.set(questions[i].k,questions[i].r[0]);
+  done++; updateTop();
+  if(done===TOTAL){ setTimeout(showResult,300); return; }
+  advanceTo(findNext(i));
+});
+
+function updateTop(){
+  const pct=done/TOTAL*100;
+  pbEl.style.width=pct+'%';
+  ptEl.textContent=done+' / '+TOTAL;
+  scCEl.textContent=scoreC;
+  scWEl.textContent=wrongMap.size;
+}
+
+// ── RESULT ───────────────────────────────────
+function showResult(){
+  quizEl.style.display='none'; resEl.style.display='flex';
+  document.getElementById('r-c').textContent=scoreC;
+  document.getElementById('r-w').textContent=wrongMap.size;
+  document.getElementById('r-a').textContent=Math.round(scoreC/TOTAL*100)+'%';
   const wl=document.getElementById('wrong-list');
   wl.innerHTML='';
-  if (wrongSet.size===0) {
-    wl.innerHTML='<span style="color:var(--correct);font-size:.9rem">全部答對！🎉</span>';
+  if(!wrongMap.size){
+    wl.innerHTML='<span style="color:var(--correct)">全部答對！🎉</span>';
   } else {
-    wrongSet.forEach((romaji,kana)=>{
+    wrongMap.forEach((r,k)=>{
       const el=document.createElement('span');
-      el.className='wrong-item'; el.textContent=kana+' → '+romaji;
+      el.className='wi'; el.textContent=k+' \u2192 '+r;
       wl.appendChild(el);
     });
   }
 }
 
-document.getElementById('retry-btn').addEventListener('click', ()=>{
-  resultEl.style.display='none'; settingsEl.style.display='flex';
+document.getElementById('retry-btn').addEventListener('click',()=>{
+  resEl.style.display='none'; settEl.style.display='flex';
 });
 </script>
 </body>

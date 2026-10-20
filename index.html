@@ -60,7 +60,7 @@
       padding: 10px 20px;
     }
     #topbar-inner {
-      width: 100%; max-width: 540px; margin: 0 auto;
+      width: 100%; max-width: 980px; margin: 0 auto;
       display: flex; align-items: center; gap: 12px;
     }
     #pb-bg { flex: 1; height: 5px; border-radius: 4px; background: var(--border); overflow: hidden; }
@@ -69,36 +69,96 @@
     .sc-c { font-size: .82rem; font-weight: 700; color: var(--correct); }
     .sc-w { font-size: .82rem; font-weight: 700; color: var(--wrong); }
 
+    /* 橫向排列卡片網格 */
     #qlist {
-      width: 100%; max-width: 540px;
-      padding: 10px 20px 60px;
-      display: flex; flex-direction: column; gap: 4px;
+      width: 100%; max-width: 980px;
+      padding: 16px 20px 60px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-start;
     }
 
-    .qrow {
-      display: flex; align-items: center; gap: 12px;
-      padding: 6px 10px; border-radius: 10px;
-      border: 1.5px solid transparent; transition: background .15s;
+    /* 單個方框卡片：包住字和填空輸入框 */
+    .qcard {
+      width: 82px;
+      padding: 8px 6px 10px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      cursor: pointer;
+      transition: all .15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .qrow.active-row { background: var(--active-bg); border-color: #c7d9ff; }
-    .qrow.done-correct { opacity: .4; }
-    .qrow.done-wrong { opacity: .8; }
+    .qcard:hover {
+      border-color: #b5cbfb;
+    }
+    .qcard.active-card {
+      border-color: var(--accent);
+      background: var(--active-bg);
+      box-shadow: 0 0 0 3px rgba(61, 111, 255, 0.15);
+    }
+    .qcard.done-correct {
+      background: var(--correct-bg);
+      border-color: var(--correct-border);
+      opacity: 0.65;
+    }
+    .qcard.has-error {
+      border-color: var(--wrong-border);
+      background: var(--wrong-bg);
+    }
 
-    .qnum { font-size: .7rem; color: var(--muted); min-width: 24px; text-align: right; flex-shrink: 0; }
-    .qkana { font-size: 2rem; line-height: 1; min-width: 54px; text-align: center; flex-shrink: 0; user-select: none; }
+    .qnum {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: .65rem;
+      color: var(--muted);
+      line-height: 1;
+    }
+    .qkana {
+      font-size: 1.85rem;
+      line-height: 1.1;
+      text-align: center;
+      user-select: none;
+      margin-top: 4px;
+    }
     .qinput {
-      width: 96px; padding: 5px 8px;
-      font-size: .92rem; border: 2px solid var(--border);
-      border-radius: 8px; background: var(--bg); color: var(--text);
-      text-align: center; outline: none; letter-spacing: .06em;
+      width: 60px;
+      padding: 4px 6px;
+      font-size: .92rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      text-align: center;
+      outline: none;
+      letter-spacing: .04em;
       transition: border-color .1s, background .1s;
     }
-    .qinput:focus { border-color: var(--accent); background: var(--surface); }
-    .qinput.correct { border-color: var(--correct-border); background: var(--correct-bg); color: var(--correct); font-weight: 600; }
-    .qinput.wrong   { border-color: var(--wrong-border);   background: var(--wrong-bg);   color: var(--wrong); }
-    .qhint { font-size: .75rem; min-width: 48px; }
-    .qhint.correct { color: var(--correct); }
-    .qhint.wrong   { color: var(--wrong); }
+    .qinput:focus {
+      border-color: var(--accent);
+    }
+    .qinput.correct {
+      border-color: var(--correct);
+      background: #fff;
+      color: var(--correct);
+      font-weight: 700;
+    }
+    .qinput.wrong {
+      border-color: var(--wrong);
+      background: #fff;
+      color: var(--wrong);
+      font-weight: 600;
+    }
+    .qinput:disabled {
+      cursor: default;
+    }
 
     /* ── Result ── */
     #result {
@@ -256,7 +316,7 @@ document.querySelectorAll('.tag').forEach(t=>{
 
 // ── STATE ────────────────────────────────────
 let questions=[], done=0, scoreC=0;
-let inputs=[], hints=[], rows=[], wasWrong=[];
+let inputs=[], cards=[], wasWrong=[];
 let curIdx=0;
 
 const settEl = document.getElementById('settings');
@@ -274,12 +334,13 @@ function startQuiz(){
   const pool = buildPool();
   questions = buildQuestions(pool);
   done=0; scoreC=0; curIdx=0;
-  inputs=[]; hints=[]; rows=[]; wasWrong=[];
+  inputs=[]; cards=[]; wasWrong=[];
   qlist.innerHTML='';
 
   questions.forEach((q,i)=>{
-    const row = document.createElement('div');
-    row.className = 'qrow' + (i===0?' active-row':'');
+    // 方形框卡片
+    const card = document.createElement('div');
+    card.className = 'qcard' + (i===0?' active-card':'');
 
     const num = document.createElement('span');
     num.className='qnum'; num.textContent=i+1;
@@ -293,16 +354,20 @@ function startQuiz(){
     inp.autocapitalize='off'; inp.spellcheck=false;
     inp.placeholder='?';
     inp.tabIndex = i+1;
-    inp.readOnly = (i!==0);   // only first row editable at start
 
-    const hint = document.createElement('span');
-    hint.className='qhint';
+    card.appendChild(num);
+    card.appendChild(kana);
+    card.appendChild(inp);
+    qlist.appendChild(card);
 
-    row.appendChild(num); row.appendChild(kana);
-    row.appendChild(inp); row.appendChild(hint);
-    qlist.appendChild(row);
+    cards.push(card);
+    inputs.push(inp);
+    wasWrong.push(false);
 
-    rows.push(row); inputs.push(inp); hints.push(hint); wasWrong.push(false);
+    // 點擊卡片任何位置聚焦輸入框
+    card.addEventListener('click', ()=>{
+      if(!inp.disabled) inp.focus();
+    });
 
     inp.addEventListener('input', ()=>onType(i));
     inp.addEventListener('focus', ()=>setActive(i));
@@ -312,79 +377,86 @@ function startQuiz(){
   settEl.style.display='none';
   quizEl.style.display='flex';
   inputs[0].focus();
-  inputs[0].scrollIntoView({behavior:'smooth',block:'center'});
+  cards[0].scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 // ── REAL-TIME CHECK ──────────────────────────
 function onType(i){
-  if(inputs[i].readOnly && i!==curIdx) return;
-  const val = inputs[i].value.toLowerCase().trim();
+  const inp = inputs[i];
+  if(inp.disabled) return;
+  const val = inp.value.toLowerCase().trim();
   const q   = questions[i];
+  const card = cards[i];
 
   if(!val){
-    inputs[i].className='qinput';
-    hints[i].textContent=''; hints[i].className='qhint';
+    inp.className='qinput';
+    card.classList.remove('has-error');
     return;
   }
 
-  // Exact match → CORRECT, advance immediately
+  // 完全符合拼音 → 正確，立刻跳下一題
   if(q.r.includes(val)){
     markCorrect(i);
     return;
   }
 
-  // Still a valid prefix of some answer → neutral
+  // 如果依然是某個可能拼音的前綴 → 保持普通狀態
   if(q.r.some(a=>a.startsWith(val))){
-    inputs[i].className='qinput';
-    hints[i].textContent=''; hints[i].className='qhint';
+    inp.className='qinput';
+    card.classList.remove('has-error');
     return;
   }
 
-  // Cannot be correct → WRONG (red only, user keeps trying)
-  inputs[i].className='qinput wrong';
-  hints[i].textContent=''; hints[i].className='qhint';
+  // 輸入錯誤：輸入框與方框變紅，不顯示答案，可繼續修改
+  inp.className='qinput wrong';
+  card.classList.add('has-error');
   wasWrong[i]=true;
 }
 
 function markCorrect(i){
   const inp  = inputs[i];
-  const hint = hints[i];
-  const row  = rows[i];
+  const card = cards[i];
 
-  inp.className='qinput correct'; inp.readOnly=true;
-  hint.textContent='✓'; hint.className='qhint correct';
-  row.classList.remove('active-row'); row.classList.add('done-correct');
+  inp.className='qinput correct';
+  inp.disabled=true; // 鎖定已答對的
+  card.classList.remove('active-card', 'has-error');
+  card.classList.add('done-correct');
 
-  scoreC++; done++;
+  scoreC++;
+  done++;
   updateTop();
 
-  if(done===TOTAL){ setTimeout(showResult,300); return; }
-  advanceTo(findNext(i));
+  if(done===TOTAL){
+    setTimeout(showResult, 300);
+    return;
+  }
+
+  // 答對立即自動跳到下一格
+  const next = findNext(i);
+  if(next!==-1) {
+    activate(next);
+  }
 }
 
+// 尋找下一個未完成的格子
 function findNext(from){
-  for(let j=from+1;j<TOTAL;j++) if(!inputs[j].readOnly) return j;
-  for(let j=0;j<from;j++)        if(!inputs[j].readOnly) return j;
+  for(let j=from+1; j<TOTAL; j++) if(!inputs[j].disabled) return j;
+  for(let j=0; j<from; j++)        if(!inputs[j].disabled) return j;
   return -1;
 }
 
-function advanceTo(i){
+function activate(i){
   if(i===-1) return;
-  curIdx=i;
-  rows[i].classList.add('active-row');
-  inputs[i].readOnly=false;
-  inputs[i].value='';
-  inputs[i].className='qinput';
-  hints[i].textContent=''; hints[i].className='qhint';
+  setActive(i);
   inputs[i].focus();
-  rows[i].scrollIntoView({behavior:'smooth',block:'center'});
+  cards[i].scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function setActive(i){
-  if(inputs[i].readOnly) return;
-  rows[curIdx].classList.remove('active-row');
-  curIdx=i;
-  rows[i].classList.add('active-row');
+  if(inputs[i].disabled) return;
+  if(cards[curIdx]) cards[curIdx].classList.remove('active-card');
+  curIdx = i;
+  cards[i].classList.add('active-card');
 }
 
 

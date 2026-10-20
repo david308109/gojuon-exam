@@ -88,12 +88,12 @@
     #prog-txt { font-size: .78rem; color: var(--muted); white-space: nowrap; }
     .sc-c { font-size: .82rem; font-weight: 700; color: var(--correct); }
 
-    /* 1排10個並置中，無空隙拼接 */
+    /* 1排10個並置中，無空隙拼接；底部留足 70vh 確保最後幾行也能捲動置頂 */
     #qlist-wrap {
       width: 100%;
       display: flex;
       justify-content: center;
-      padding: 24px 16px 80px;
+      padding: 24px 16px 70vh;
     }
     #qlist {
       display: grid;
@@ -385,7 +385,7 @@ function startQuiz(){
     inp.type='text'; inp.className='qinput';
     inp.autocomplete='off'; inp.autocorrect='off';
     inp.autocapitalize='off'; inp.spellcheck=false;
-    inp.placeholder='?';
+    // no placeholder
     inp.tabIndex = i+1;
 
     card.appendChild(num);

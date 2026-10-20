@@ -54,34 +54,61 @@
     #quiz { display: none; width: 100%; flex-direction: column; align-items: center; }
 
     #topbar {
-      position: sticky; top: 0; z-index: 10;
+      position: sticky; top: 0; z-index: 100;
       width: 100%; background: var(--bg);
       border-bottom: 1px solid var(--border);
       padding: 10px 20px;
     }
     #topbar-inner {
-      width: 100%; max-width: 980px; margin: 0 auto;
+      width: 100%; max-width: 850px; margin: 0 auto;
       display: flex; align-items: center; gap: 12px;
+    }
+    .home-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: .82rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+    .home-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--surface);
     }
     #pb-bg { flex: 1; height: 5px; border-radius: 4px; background: var(--border); overflow: hidden; }
     #pb { height: 100%; border-radius: 4px; background: var(--accent); transition: width .2s; }
     #prog-txt { font-size: .78rem; color: var(--muted); white-space: nowrap; }
     .sc-c { font-size: .82rem; font-weight: 700; color: var(--correct); }
 
-    /* 橫向緊密網格：卡片間無縫隙 */
-    #qlist {
-      width: 100%; max-width: 980px;
-      padding: 16px 20px 60px;
+    /* 1排10個並置中，無空隙拼接 */
+    #qlist-wrap {
+      width: 100%;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0;
-      justify-content: flex-start;
+      justify-content: center;
+      padding: 24px 16px 80px;
+    }
+    #qlist {
+      display: grid;
+      grid-template-columns: repeat(10, 76px);
+      justify-content: center;
+      width: fit-content;
+      margin: 0 auto;
     }
 
-    /* 單個方框卡片：無縫緊貼拼接 */
+    /* 單個方框卡片：無縫拼接、字完全置中 */
     .qcard {
-      width: 80px;
-      padding: 8px 4px 10px;
+      width: 76px;
+      height: 94px;
+      box-sizing: border-box;
+      padding: 6px 4px 8px;
       background: var(--surface);
       border: 1.5px solid var(--border);
       margin-left: -1.5px;
@@ -90,7 +117,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
       position: relative;
       cursor: pointer;
       transition: background .15s ease;
@@ -126,16 +153,16 @@
       line-height: 1;
     }
     .qkana {
-      font-size: 1.85rem;
+      font-size: 1.8rem;
       line-height: 1.1;
       text-align: center;
       user-select: none;
-      margin-top: 4px;
+      margin: 2px 0 4px;
     }
     .qinput {
-      width: 60px;
-      padding: 4px 6px;
-      font-size: .92rem;
+      width: 58px;
+      padding: 3px 4px;
+      font-size: .9rem;
       border: 1.5px solid var(--border);
       border-radius: 6px;
       background: var(--surface);
@@ -204,12 +231,15 @@
 <section id="quiz">
   <div id="topbar">
     <div id="topbar-inner">
+      <button class="home-btn" id="quiz-home-btn" title="回首頁">⌂ 首頁</button>
       <div id="pb-bg"><div id="pb" style="width:0%"></div></div>
       <span id="prog-txt">0 / 100</span>
       <span class="sc-c">✓ <span id="sc-c">0</span></span>
     </div>
   </div>
-  <div id="qlist"></div>
+  <div id="qlist-wrap">
+    <div id="qlist"></div>
+  </div>
 </section>
 
 <section id="result">
@@ -217,7 +247,10 @@
   <div id="res-stats">
     <div class="rstat c"><span id="r-c">0</span><span>題全數完成</span></div>
   </div>
-  <button id="retry-btn">再練一次</button>
+  <div style="display:flex; gap:12px;">
+    <button class="home-btn" id="res-home-btn" style="padding:10px 24px; font-size:.95rem;">⌂ 回首頁</button>
+    <button id="retry-btn">再練一次</button>
+  </div>
 </section>
 
 <script>
@@ -377,7 +410,7 @@ function startQuiz(){
   settEl.style.display='none';
   quizEl.style.display='flex';
   inputs[0].focus();
-  cards[0].scrollIntoView({behavior:'smooth',block:'center'});
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── REAL-TIME CHECK ──────────────────────────
@@ -445,11 +478,22 @@ function findNext(from){
   return -1;
 }
 
+function ensureVisibleInUpperHalf(el) {
+  const rect = el.getBoundingClientRect();
+  const vh = window.innerHeight;
+  // 如果卡片在視窗中線偏下 (超過 55% 視窗高度) 或超出下方視野
+  if (rect.bottom > vh * 0.55 || rect.top < 70) {
+    // 滾動讓該目標保持在視窗上半部 (約 25% ~ 30% 位置)
+    const targetY = window.pageYOffset + rect.top - (vh * 0.28);
+    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+  }
+}
+
 function activate(i){
   if(i===-1) return;
   setActive(i);
   inputs[i].focus();
-  cards[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+  ensureVisibleInUpperHalf(cards[i]);
 }
 
 function setActive(i){
@@ -474,8 +518,19 @@ function showResult(){
   document.getElementById('r-c').textContent=scoreC;
 }
 
+function goHome(){
+  quizEl.style.display='none';
+  resEl.style.display='none';
+  settEl.style.display='flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('quiz-home-btn').addEventListener('click', goHome);
+document.getElementById('res-home-btn').addEventListener('click', goHome);
+
 document.getElementById('retry-btn').addEventListener('click',()=>{
   resEl.style.display='none'; settEl.style.display='flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 </script>
 </body>

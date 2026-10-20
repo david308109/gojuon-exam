@@ -67,50 +67,54 @@
     #pb { height: 100%; border-radius: 4px; background: var(--accent); transition: width .2s; }
     #prog-txt { font-size: .78rem; color: var(--muted); white-space: nowrap; }
     .sc-c { font-size: .82rem; font-weight: 700; color: var(--correct); }
-    .sc-w { font-size: .82rem; font-weight: 700; color: var(--wrong); }
 
-    /* 橫向排列卡片網格 */
+    /* 橫向緊密網格：卡片間無縫隙 */
     #qlist {
       width: 100%; max-width: 980px;
       padding: 16px 20px 60px;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 0;
       justify-content: flex-start;
     }
 
-    /* 單個方框卡片：包住字和填空輸入框 */
+    /* 單個方框卡片：無縫緊貼拼接 */
     .qcard {
-      width: 82px;
-      padding: 8px 6px 10px;
+      width: 80px;
+      padding: 8px 4px 10px;
       background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      margin-left: -1.5px;
+      margin-top: -1.5px;
+      border-radius: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       position: relative;
       cursor: pointer;
-      transition: all .15s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: background .15s ease;
+      z-index: 1;
     }
     .qcard:hover {
+      z-index: 3;
       border-color: #b5cbfb;
     }
     .qcard.active-card {
       border-color: var(--accent);
       background: var(--active-bg);
-      box-shadow: 0 0 0 3px rgba(61, 111, 255, 0.15);
+      z-index: 5;
+      box-shadow: 0 0 0 2px var(--accent);
     }
     .qcard.done-correct {
       background: var(--correct-bg);
       border-color: var(--correct-border);
-      opacity: 0.65;
+      opacity: 0.7;
     }
     .qcard.has-error {
-      border-color: var(--wrong-border);
+      border-color: var(--wrong);
       background: var(--wrong-bg);
+      z-index: 4;
     }
 
     .qnum {
@@ -203,7 +207,6 @@
       <div id="pb-bg"><div id="pb" style="width:0%"></div></div>
       <span id="prog-txt">0 / 100</span>
       <span class="sc-c">✓ <span id="sc-c">0</span></span>
-      <span class="sc-w">✗ <span id="sc-w">0</span></span>
     </div>
   </div>
   <div id="qlist"></div>
@@ -212,9 +215,7 @@
 <section id="result">
   <h2>練習完成！</h2>
   <div id="res-stats">
-    <div class="rstat c"><span id="r-c">0</span><span>正確</span></div>
-    <div class="rstat w"><span id="r-w">0</span><span>錯誤</span></div>
-    <div class="rstat">  <span id="r-a">0%</span><span>正確率</span></div>
+    <div class="rstat c"><span id="r-c">0</span><span>題全數完成</span></div>
   </div>
   <button id="retry-btn">再練一次</button>
 </section>
@@ -325,7 +326,6 @@ const resEl  = document.getElementById('result');
 const pbEl   = document.getElementById('pb');
 const ptEl   = document.getElementById('prog-txt');
 const scCEl  = document.getElementById('sc-c');
-const scWEl  = document.getElementById('sc-w');
 const qlist  = document.getElementById('qlist');
 
 document.getElementById('start-btn').addEventListener('click', startQuiz);
@@ -466,16 +466,12 @@ function updateTop(){
   pbEl.style.width=pct+'%';
   ptEl.textContent=done+' / '+TOTAL;
   scCEl.textContent=scoreC;
-  scWEl.textContent=done-scoreC;
 }
 
 // ── RESULT ───────────────────────────────────
 function showResult(){
   quizEl.style.display='none'; resEl.style.display='flex';
-  const wrong=TOTAL-scoreC;
   document.getElementById('r-c').textContent=scoreC;
-  document.getElementById('r-w').textContent=wrong;
-  document.getElementById('r-a').textContent=Math.round(scoreC/TOTAL*100)+'%';
 }
 
 document.getElementById('retry-btn').addEventListener('click',()=>{
